@@ -1,0 +1,268 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace NumberSystem
+{
+    public class translateNumbers
+    {
+        private static String start;
+        private static String intStart, floatStart;
+        private const int minSystemS = 2, maxSystemS = 36;
+        private static int startSystemS = 0, finalSystemS = 0;
+
+        public static int charToInt(char oneIntOfChar) //Перевод символа в число
+        {
+            if (oneIntOfChar >= '0' && oneIntOfChar <= '9')
+            {
+                return oneIntOfChar - '0';
+            }
+
+            if (oneIntOfChar >= 'A' && oneIntOfChar <= 'Z')
+            {
+                return oneIntOfChar - 'A' + 10;
+            }
+            else return 36;
+        }
+
+        private static char intToChar(int oneCharOfInt) //Перевод числа в символ
+        {
+            if (oneCharOfInt <= 9)
+            {
+                return (char)(oneCharOfInt + '0');
+            }
+            else
+            {
+                return (char)(oneCharOfInt + 55);
+            }
+        }
+
+        private static int translateIntToTen() //Перевод целой части в десятичную СС
+        {
+            int tenS = 0, degree = 1, length = intStart.Length;
+            for (int i = length - 1; i >= 0; i--)
+            {
+                int buffer = charToInt(intStart[i]);
+                tenS += (buffer * degree);
+                degree *= startSystemS;
+            }
+
+            return tenS;
+        }
+
+        private static double translateFloatToTen() //Перевод дробной части в десятичную СС
+        {
+            double floatS = 0.0, degree = -1;
+            int length = floatStart.Length;
+            double buffer = startSystemS;
+
+            for (int i = 0; i < length; i++)
+            {
+                double qqq = charToInt(floatStart[i]);
+                floatS = floatS + (qqq * Math.Pow(buffer, degree));
+                degree--;
+            }
+
+            return floatS;
+        }
+
+        private static char translateToOther(char number) //Перевод в СС больше 9
+        {
+            //Словари
+            Dictionary<char, int> dNumbers = new Dictionary<char, int>(26) {
+                {'A', 10}, {'B', 11}, {'C', 12}, {'D', 13}, {'E', 14}, {'F', 15}, {'G', 16}, {'H', 17}, {'I', 18},
+                {'J', 19}, {'K', 20}, {'L', 21}, {'M', 22}, {'N', 23}, {'O', 24}, {'P', 25}, {'Q', 26}, {'R', 27},
+                {'S', 28}, {'T', 29}, {'U', 30}, {'V', 31}, {'W', 32}, {'X', 33}, {'Y', 34}, {'Z', 35}
+            };
+ 
+            Dictionary<int, char> dWords = new Dictionary<int, char>(26) {
+                {10, 'A'}, {11, 'B'}, {12, 'C'}, {13, 'D'}, {14, 'E'}, {15, 'F'}, {16, 'G'}, {17, 'H'}, {18, 'I'},
+                {19, 'J'}, {20, 'K'}, {21, 'L'}, {22, 'M'}, {23, 'N'}, {24, 'O'}, {25, 'P'}, {26, 'Q'}, {27, 'R'},
+                {28, 'S'}, {29, 'T'}, {30, 'U'}, {31, 'V'}, {32, 'W'}, {33, 'X'}, {34, 'Y'}, {35, 'Z'}
+            };
+
+            bool checkNumber = false;
+            if (number >= 'A' && number <= 'Z')
+            {
+                checkNumber = true;
+            }
+            else
+            {
+                checkNumber = false;
+            }
+
+            if (checkNumber == false)
+            {
+                return dWords[charToInt(number)];
+            }
+            else
+            {
+                return intToChar(dNumbers[number]);
+            }
+        }
+        private static bool checkErorSystemS() //Проверка корректности системы счисления
+        {
+            if ((startSystemS >= minSystemS && finalSystemS <= minSystemS) || (finalSystemS > maxSystemS || finalSystemS < minSystemS))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        private static bool checkErorStart() //Проверка корректности введенного числа
+        {
+            int sumOfDots = 0, length = start.Length;
+            if (start[0] == '.' || start[length - 1] == '.')
+            {
+                return false;
+            }
+
+            length = start.Length;
+            for (int i = 0; i < length; i++)
+            {
+                if (sumOfDots > 1)
+                {
+                    return false;
+                }
+
+                if (start[i] == '.')
+                {
+                    sumOfDots++;
+                    continue;
+                }
+
+                if (charToInt(start[i]) >= startSystemS)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+
+
+        private static char[] translateFloat() //Перевод дробной части из десятичной СС
+        {
+            int i = 0, num = 0, size = 50, lengthFloat = 0;
+            char[] arrNumbers = new char[size];
+            double floatNumbers = translateFloatToTen();
+            double buffer = floatNumbers;
+
+            while (buffer % 10 != 0)
+            {
+                buffer *= 10;
+                lengthFloat++;
+            }
+            lengthFloat--;
+
+            while (i < 10)
+            {
+                floatNumbers *= finalSystemS;
+                num = (int)floatNumbers;
+                arrNumbers[i] = intToChar(num);
+                floatNumbers -= num;
+                i++;
+            }
+            arrNumbers[i] = '\0';
+
+            return arrNumbers;
+        }
+
+        public static char[] translateMain(string mainString, int firstSystem, int secondSystem) //Основная функция перевода
+        {
+            start = mainString;
+            startSystemS = firstSystem;
+            finalSystemS = secondSystem;
+            char[] clearArr = { '\0' };
+
+            if (checkErorSystemS() == false || checkErorStart() == false)
+            {
+                Console.WriteLine("Некорректность введенных данных.");
+                return clearArr;
+            }
+            else
+            {
+                int j = 0;
+                bool checkDots = false;
+
+                while (j != mainString.Length)
+                {
+                    if (mainString[j] == '.')
+                    {
+                        checkDots = true;
+                        j++;
+                        continue;
+                    }
+                    else
+                    {
+                        if (checkDots == false)
+                        {
+                            intStart += mainString[j];
+
+                        }
+                        else
+                        {
+                            floatStart += mainString[j];
+                        }
+                        j++;
+                    }
+                }
+
+                int tenSystem = translateIntToTen();
+                int count = 0, buffer = tenSystem;
+
+                while (buffer > 0)
+                {
+                    buffer /= finalSystemS;
+                    count++;
+                }
+
+                char[] resultString = new char[100];
+                char[] arrNumbers = new char[count];
+                int i = 0;
+
+                while (tenSystem > 0)
+                {
+                    arrNumbers[i] = intToChar(tenSystem % secondSystem);
+                    if (charToInt(arrNumbers[i]) > 9) arrNumbers[i] = translateToOther(arrNumbers[i]);
+                    tenSystem /= finalSystemS;
+                    i++;
+                }
+
+                i = 0;
+                for (int x = 0; x < count; x++)
+                {
+                    resultString[i] = arrNumbers[count - 1 - i];
+                    i++;
+                }
+
+                if (checkDots == true)
+                {
+                    char[] floatNumbers = new char[50];
+                    floatNumbers = translateFloat();
+                    int lengthFloat = 0;
+
+                    resultString[i] = '.';
+
+                    while (floatNumbers[lengthFloat] != '\0')
+                    {
+                        lengthFloat++;
+                    }
+
+                    int n = 0;
+                    for (int z = i + 1; z < lengthFloat + i + 1; z++)
+                    {
+                        resultString[z] = floatNumbers[n];
+                        n++;
+                    }
+                }
+
+                return resultString;
+            }
+        }
+    }
+}
